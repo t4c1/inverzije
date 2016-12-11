@@ -1,0 +1,247 @@
+import random
+
+def generiraj(n,tip):
+    if tip =="inc":
+        return range(n)
+    elif tip=="dec":
+        return range(n,0,-1)
+    elif tip=="rnd":
+        res=range(n)
+        random.shuffle(res)
+        return res
+    else:
+        raise NotImplementedError
+
+def inverzije_bf_simple(l):
+    n=len(l)
+    res=0
+    for i in range(n):
+        for j in range(i,n):
+            if l[i]>l[j]:
+                res+=1
+    return res
+
+def inverzije_bf(l): # ~ n**2 / 2
+    """
+    brute force pristop
+    """
+    n=len(l)
+    res=0
+    for i in range(n):
+        for j in range(i,n):
+            res+=l[i]>l[j]
+    return res
+
+def inverzije_is(l):
+    """
+    insertion sort, linearno iskanje, swapi, lepa koda
+    """
+    listlen=len(l)
+    res=0
+    for i in range(1,listlen):
+        for j in range(i):
+            if l[i]<l[j]:
+                res+=i-j
+                for k in range(j,i):
+                    l[k],l[i]=l[i],l[k]
+                break
+    return res
+
+def inverzije_is2(l):
+    """
+    insertion sort, bisekcija, swapi, lepa koda
+    """
+    listlen=len(l)
+    res=0
+    for i in range(1,listlen):
+        start=0
+        stop=i
+        flag=False
+        while start<stop-1:
+            flag=True
+            center=(start+stop)//2
+            if l[center]<l[i]:
+                start=center
+            else:
+                stop=center
+        if flag:
+            res+=i-center
+            for k in range(center,i):
+                l[k],l[i]=l[i],l[k]
+    return res
+
+def inverzije_is3(l):
+    """
+    insertion sort, bisekcija, zamiki, lepa koda
+    """
+    listlen=len(l)
+    res=0
+    for i in range(1,listlen):
+        start=0
+        stop=i
+        flag=False
+        while start<stop-1:
+            flag=True
+            center=(start+stop)//2
+            if l[center]<l[i]:
+                start=center
+            else:
+                stop=center
+        if flag:
+            res+=i-center
+            tmp=l[i]
+            for k in range(i,center,-1):#TODO: brez zanke - predelaj seznam
+                l[k]=l[k-1]
+            l[center]=tmp
+    return res
+
+def inverzije_is4(l):
+    """
+    insertion sort, bisekcija, zamiki, lepa koda
+    """
+    listlen=len(l)
+    res=0
+    for i in range(1,listlen):
+        start=0
+        stop=i
+        flag=False
+        while start<stop-1:
+            flag=True
+            center=(start+stop)//2
+            if l[center]<l[i]:
+                start=center
+            else:
+                stop=center
+        if flag:
+            res+=i-center
+            tmp=l[i]
+            l=l[:center]+[l[i]]+l[center:i]+l[center+1:]
+            l[center]=tmp
+    return res
+
+def inverzije_dc_rek(l, start=0, end=-1):
+    """
+    divide & conquer pristop - mergesort, rekurzivno, z veckratno alokacijo
+    """
+    if end==-1:
+        end=len(l)
+    if end-start<=1:
+        return 0
+
+    center= (start + end) // 2
+    res=inverzije_dc_rek(l, start, center)+inverzije_dc_rek(l,center,end)
+
+    l2=[0]*len(l)
+    i1=start
+    i2=(start+end)//2
+    end1=i2
+    for outidx in range(start, end):
+        if i1< end1:
+            if i2<end and l[i1]>l[i2]:
+                l2[outidx]=l[i2]
+                i2+=1
+                res+=end1-i1
+            else:
+                l2[outidx]=l[i1]
+                i1+=1
+        else:  # i2<end2
+            l2[outidx]=l[i2]
+            i2+=1
+    for i in range(start, end):
+        l[i]=l2[i]
+    return res
+
+def inverzije_dc_rek2(l,l2=None, start=0, end=-1):
+    """
+    divide & conquer pristop - mergesort, rekurzivno
+    """
+    if l2 is None:
+        l2=l[:]
+        end=len(l)
+    if end-start<=1:
+        return 0
+
+    center= (start + end) / 2
+    res=inverzije_dc_rek2(l2,l, start, center)+inverzije_dc_rek2(l2,l,center,end)
+
+    i1=start
+    i2=(start+end)//2
+    end1=i2
+    for outidx in range(start, end):
+        if i1< end1:
+            if i2<end and l[i1]>l[i2]:
+                l2[outidx]=l[i2]
+                i2+=1
+                res+=end1-i1
+            else:
+                l2[outidx]=l[i1]
+                i1+=1
+        else:  # i2<end2
+            l2[outidx]=l[i2]
+            i2+=1
+    for i in range(start, end):
+        l[i]=l2[i]
+    return res
+
+def inverzije_dc(l):
+    """
+    divide & conquer pristop - mergesort
+    """
+    listlen = len(l)
+    l2= [0] * listlen
+    runl=1
+    res=0
+    while runl<listlen:
+        #runstart=0
+        for runstart in range(0,listlen,2*runl):
+        #while runstart<listlen:
+            i1=runstart
+            i2=runstart+runl
+            end1 = runstart + runl
+            end2 = min(runstart + 2*runl, listlen)
+            for outidx in range(runstart, min(runstart + 2*runl, listlen)):
+                if i1< end1:
+                    if i2<end2 and l[i1]>l[i2]:
+                        l2[outidx]=l[i2]
+                        i2+=1
+                        res+=end1-i1
+                    else:
+                        l2[outidx]=l[i1]
+                        i1+=1
+                else:  # i2<end2
+                    l2[outidx]=l[i2]
+                    i2+=1
+            #runstart+=runl*2
+        l,l2=l2,l
+        runl*=2
+    #print l
+    return res
+
+all_funcs = inverzije_bf,inverzije_bf_simple,inverzije_is,inverzije_is2,inverzije_is3,inverzije_is4,inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
+fast_funcs = inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
+def test(n,funcs=all_funcs,gen="rnd"):
+    from time import clock
+    l=generiraj(n,gen)
+    for func in funcs:
+        lt=l[:]
+        t=clock()
+        res=func(lt)
+        t=clock()-t
+        print "%20s: %4f   (%d)"%(func.__name__,t,res)
+
+
+if __name__=="__main__":
+    a=[1,4,3,2]
+    print a
+    print inverzije_bf(a[:])
+    print inverzije_is(a[:])
+    print inverzije_is2(a[:])
+    print inverzije_is3(a[:])
+    print inverzije_is4(a[:])
+    print inverzije_dc(a[:])
+    print inverzije_dc_rek(a[:])
+    print inverzije_dc_rek2(a[:])
+
+    #test(1000000,(inverzije_dc,inverzije_dc_rek2))
+    #test(30000,fast_funcs)
+    test(1000)
