@@ -10,7 +10,7 @@ def generiraj(n,tip):
         random.shuffle(res)
         return res
     else:
-        raise NotImplementedError
+        return tip #raise NotImplementedError
 
 def inverzije_bf_simple(l):
     n=len(l)
@@ -56,17 +56,15 @@ def inverzije_is2(l):
     for i in range(1,listlen):
         start=0
         stop=i
-        flag=False
-        while start<stop-1:
-            flag=True
+        while start<stop:
             center=(start+stop)//2
             if l[center]<l[i]:
-                start=center
+                start=center+1
             else:
                 stop=center
-        if flag:
-            res+=i-center
-            for k in range(center,i):
+        if l[start]>l[i]:
+            res+=i-start
+            for k in range(start,i):
                 l[k],l[i]=l[i],l[k]
     return res
 
@@ -79,44 +77,18 @@ def inverzije_is3(l):
     for i in range(1,listlen):
         start=0
         stop=i
-        flag=False
-        while start<stop-1:
-            flag=True
+        while start<stop:
             center=(start+stop)//2
             if l[center]<l[i]:
-                start=center
+                start=center+1
             else:
                 stop=center
-        if flag:
-            res+=i-center
+        if l[start]>l[i]:
+            res+=i-start
             tmp=l[i]
-            for k in range(i,center,-1):#TODO: brez zanke - predelaj seznam
+            for k in range(i,start,-1):
                 l[k]=l[k-1]
-            l[center]=tmp
-    return res
-
-def inverzije_is4(l):
-    """
-    insertion sort, bisekcija, zamiki, lepa koda
-    """
-    listlen=len(l)
-    res=0
-    for i in range(1,listlen):
-        start=0
-        stop=i
-        flag=False
-        while start<stop-1:
-            flag=True
-            center=(start+stop)//2
-            if l[center]<l[i]:
-                start=center
-            else:
-                stop=center
-        if flag:
-            res+=i-center
-            tmp=l[i]
-            l=l[:center]+[l[i]]+l[center:i]+l[center+1:]
-            l[center]=tmp
+            l[start]=tmp
     return res
 
 def inverzije_dc_rek(l, start=0, end=-1):
@@ -217,7 +189,7 @@ def inverzije_dc(l):
     #print l
     return res
 
-all_funcs = inverzije_bf,inverzije_bf_simple,inverzije_is,inverzije_is2,inverzije_is3,inverzije_is4,inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
+all_funcs = inverzije_bf,inverzije_bf_simple,inverzije_is,inverzije_is2,inverzije_is3,inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
 fast_funcs = inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
 def test(n,funcs=all_funcs,gen="rnd"):
     from time import clock
@@ -231,17 +203,8 @@ def test(n,funcs=all_funcs,gen="rnd"):
 
 
 if __name__=="__main__":
-    a=[1,4,3,2]
-    print a
-    print inverzije_bf(a[:])
-    print inverzije_is(a[:])
-    print inverzije_is2(a[:])
-    print inverzije_is3(a[:])
-    print inverzije_is4(a[:])
-    print inverzije_dc(a[:])
-    print inverzije_dc_rek(a[:])
-    print inverzije_dc_rek2(a[:])
+
 
     #test(1000000,(inverzije_dc,inverzije_dc_rek2))
     #test(30000,fast_funcs)
-    test(1000)
+    test(3000)
