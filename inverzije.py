@@ -1,4 +1,5 @@
 import random
+from time import clock
 
 def generiraj(n,tip):
     if tip =="inc":
@@ -192,7 +193,6 @@ def inverzije_dc(l):
 all_funcs = inverzije_bf,inverzije_bf_simple,inverzije_is,inverzije_is2,inverzije_is3,inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
 fast_funcs = inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
 def test(n,funcs=all_funcs,gen="rnd"):
-    from time import clock
     l=generiraj(n,gen)
     for func in funcs:
         lt=l[:]
@@ -201,10 +201,51 @@ def test(n,funcs=all_funcs,gen="rnd"):
         t=clock()-t
         print "%20s: %4f   (%d)"%(func.__name__,t,res)
 
+def find_best_test(reps=10,funcs=all_funcs,gen="rnd", max_time=1):
+    funcs=list(funcs)
+    ns=[]
+    results={i.__name__:[] for i in funcs}
+    n=1
+    while funcs:
+        print n, len(funcs)
+        ns.append(n)
+        l=generiraj(n,gen)
+        for func in funcs[::-1]:#ker iz seznama lahko brisemo gremo cez v obratnem vrstnem redu!
+            #lt=[l[:] for i in range(reps)]
+            tmp=0
+            for i in range(reps):
+                lt=l[:]
+                t=clock()
+                res=func(lt)
+                t=clock()-t
+                tmp+=t
+            tmp/=reps
+            results[func.__name__].append(tmp)
+            if tmp>max_time:
+                funcs.remove(func)
+        n=int(n*1.1)+1
+    return results,ns
+
+def draw_graph(res,ns):
+    from matplotlib import pyplot
+    f=pyplot.figure()
+    #odkomentiraj za logaritmicno skalo
+    #pyplot.semilogx()
+    #pyplot.semilogy()
+    for fn in res:
+        l=pyplot.plot(ns[:len(res[fn])],res[fn],label=fn)
+    pyplot.legend()
+    pyplot.show()
+    #TODO: name map, axis
+
 
 if __name__=="__main__":
+    res,ns = find_best_test(reps=10,max_time=10)
+    print "%20s"%("FUNC \\ N",), "  ".join(["%8d"%(j,) for j in ns])
+    for i in res:
+        print "%20s"%(i,), ", ".join(["%8f"%(j,) for j in res[i]])
 
-
+    draw_graph(res,ns)
     #test(1000000,(inverzije_dc,inverzije_dc_rek2))
     #test(30000,fast_funcs)
-    test(3000)
+    #test(10000)
