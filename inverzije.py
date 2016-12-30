@@ -1,3 +1,5 @@
+#coding: utf-8
+#author: Tadej Ciglarič
 import random
 from time import clock
 
@@ -33,7 +35,7 @@ def inverzije_bf(l): # ~ n**2 / 2
             res+=l[i]>l[j]
     return res
 
-def inverzije_is(l):
+def inverzije_is_lin(l):
     """
     insertion sort, linearno iskanje, swapi, lepa koda
     """
@@ -48,7 +50,7 @@ def inverzije_is(l):
                 break
     return res
 
-def inverzije_is2(l):
+def inverzije_is_bisect_swap(l):
     """
     insertion sort, bisekcija, swapi, lepa koda
     """
@@ -69,7 +71,7 @@ def inverzije_is2(l):
                 l[k],l[i]=l[i],l[k]
     return res
 
-def inverzije_is3(l):
+def inverzije_is_bisect_shift(l):
     """
     insertion sort, bisekcija, zamiki, lepa koda
     """
@@ -156,7 +158,7 @@ def inverzije_dc_rek2(l,l2=None, start=0, end=-1):
         l[i]=l2[i]
     return res
 
-def inverzije_dc(l):
+def inverzije_dc_iter(l):
     """
     divide & conquer pristop - mergesort
     """
@@ -190,8 +192,14 @@ def inverzije_dc(l):
     #print l
     return res
 
-all_funcs = inverzije_bf,inverzije_bf_simple,inverzije_is,inverzije_is2,inverzije_is3,inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
-fast_funcs = inverzije_dc,inverzije_dc_rek,inverzije_dc_rek2
+def inverzije_hibrid(l):
+    if len(l)<48:
+        return inverzije_bf_simple(l)
+    else:
+        return inverzije_dc_iter(l)
+
+all_funcs = inverzije_bf, inverzije_bf_simple, inverzije_is_lin, inverzije_is_bisect_swap, inverzije_is_bisect_shift, inverzije_dc_rek, inverzije_dc_rek2, inverzije_dc_iter
+fast_funcs = inverzije_dc_iter, inverzije_dc_rek, inverzije_dc_rek2
 def test(n,funcs=all_funcs,gen="rnd"):
     l=generiraj(n,gen)
     for func in funcs:
@@ -223,7 +231,7 @@ def find_best_test(reps=10,funcs=all_funcs,gen="rnd", max_time=1):
             results[func.__name__].append(tmp)
             if tmp>max_time:
                 funcs.remove(func)
-        n=int(n*1.1)+1
+        n=int(n*1.2)+1
     return results,ns
 
 def draw_graph(res,ns):
@@ -232,6 +240,8 @@ def draw_graph(res,ns):
     #odkomentiraj za logaritmicno skalo
     #pyplot.semilogx()
     #pyplot.semilogy()
+    pyplot.xlabel(u"Število elementov")
+    pyplot.ylabel(u"Čas [s]")
     for fn in res:
         l=pyplot.plot(ns[:len(res[fn])],res[fn],label=fn)
     pyplot.legend()
@@ -240,11 +250,13 @@ def draw_graph(res,ns):
 
 
 if __name__=="__main__":
-    res,ns = find_best_test(reps=10,max_time=10)
+    gen="dec"
+    res,ns = find_best_test(reps=10,max_time=2,gen=gen)
     print "%20s"%("FUNC \\ N",), "  ".join(["%8d"%(j,) for j in ns])
     for i in res:
         print "%20s"%(i,), ", ".join(["%8f"%(j,) for j in res[i]])
-
+    import pickle
+    pickle.dump((res,ns),open(gen+".pick","w"))
     draw_graph(res,ns)
     #test(1000000,(inverzije_dc,inverzije_dc_rek2))
     #test(30000,fast_funcs)
